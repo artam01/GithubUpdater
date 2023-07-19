@@ -22,6 +22,14 @@ class Kernel extends ConsoleKernel
     {
         $this->load(__DIR__.'/Commands');
 
-        require base_path('routes/console.php');
+        $this->load(base_path('app/Console/Commands'));
+
+    }
+
+    protected function getCommands(): array
+    {
+        return [
+            GitPushCommand::class,
+        ];
     }
 }

@@ -3,23 +3,38 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Symphony\Compomemt\Process\Process;
+use Symfony\Component\Process\Process;
 
 class GitCommand extends Command
 {
-    protected $signature = 'git:push [message]';
+    protected $signature = 'git:push {message?}';
 
-    protected $description = 'Git Command push to repo';
+    protected $description = 'Push changes to the remote git repository';
 
     public function handle()
     {
-        $message = $this->argument('message');
+        $message = $this->argument('message') ?: 'Update from git:push command';
 
-        (new Process(['git', 'add', '.']))->run();
+        $this->info('Running git add .');
+        $this->executeProcess('git add .');
 
-        (new Process(['git', 'commit', '-m', $message]))->run();
+        $this->info('Running git commit');
+        $this->executeProcess("git commit -m \"$message\"");
 
-        (new Process(['git', 'push']))->run();
-        $this->info('Repository uodated');
+        $this->info('Running git push');
+        $this->executeProcess('git push');
+
+        $this->info('Git push successful!');
+    }
+
+    protected function executeProcess($command)
+    {
+        $process = Process::fromShellCommandline($command);
+        $process->setTimeout(null);
+        $process->run();
+
+        if (! $process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
     }
 }
